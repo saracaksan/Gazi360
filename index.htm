@@ -1,1 +1,1022 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gazi Ortaokulu Davranış Takip</title>
+<style>
+  :root { --ana: #14407a; --ana2: #1f5fae; --zemin: #f1f4f9; --kenar: #dde2ea; --yazi: #1d2330; --sol: #667085; --iyi: #15803d; --kotu: #b91c1c; --uyari: #d97706; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Roboto, Arial, sans-serif; font-size: 14px; color: var(--yazi); background: var(--zemin); }
+  header { background: linear-gradient(135deg, var(--ana), var(--ana2)); color: #fff; padding: 8px 14px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 30; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+  header .ad { flex: 1; line-height: 1.2; }
+  header b { font-size: 15px; display: block; letter-spacing: .2px; }
+  header span { font-size: 11px; opacity: .9; }
+  #cikis { background: rgba(255,255,255,.18); color: #fff; border: 0; border-radius: 8px; padding: 7px 11px; cursor: pointer; display: none; }
+  nav { display: flex; gap: 4px; padding: 6px 8px; background: #fff; border-bottom: 1px solid var(--kenar); position: sticky; top: 52px; z-index: 29; overflow-x: auto; }
+  nav button { border: 0; background: none; padding: 9px 14px; font-size: 13.5px; cursor: pointer; color: var(--sol); white-space: nowrap; border-radius: 999px; }
+  nav button.a { background: var(--ana); color: #fff; font-weight: 600; }
+  main { padding: 12px; max-width: 1120px; margin: auto; }
+  .kart { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(16,24,40,.08); border: 1px solid #edf0f5; }
+  .kart h3 { margin: 2px 0 10px; font-size: 15px; color: var(--ana); }
+  .giris { max-width: 360px; margin: 28px auto; text-align: center; }
+  .giris input { text-align: left; }
+  label { display: block; font-size: 12px; color: var(--sol); margin-top: 6px; }
+  select, input, textarea { width: 100%; padding: 10px 12px; margin: 4px 0 8px; border: 1px solid #cdd3dd; border-radius: 9px; font-size: 14px; background: #fff; font-family: inherit; color: var(--yazi); }
+  select:focus, input:focus, textarea:focus { outline: 2px solid #bcd3f2; border-color: var(--ana2); }
+  summary { cursor: pointer; font-weight: 600; color: var(--ana); }
+  button.b { padding: 10px 15px; border: 0; border-radius: 9px; background: var(--ana); color: #fff; cursor: pointer; font-size: 14px; margin: 2px 4px 2px 0; font-weight: 500; }
+  button.ikincil { background: #e8ecf2; color: var(--yazi); }
+  button.sil { background: var(--kotu); }
+  button:disabled { opacity: .45; }
+  .seg { padding: 9px 16px; border: 1px solid var(--kenar); background: #fff; cursor: pointer; font-size: 13.5px; }
+  .seg:first-child { border-radius: 9px 0 0 9px; } .seg:last-child { border-radius: 0 9px 9px 0; margin-left: -1px; }
+  .seg.a { background: var(--ana); color: #fff; border-color: var(--ana); font-weight: 600; }
+  .arac { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .arac input { flex: 1; min-width: 180px; margin: 0; }
+  .satir { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #eef1f5; }
+  .satir select, .satir input { width: 55%; margin: 0; }
+  .form { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .form input, .form select { margin: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; overflow-x: auto; display: block; }
+  th, td { border-bottom: 1px solid #eef1f5; padding: 7px 8px; text-align: left; vertical-align: top; }
+  th { background: #f4f6fa; color: #475467; font-weight: 600; }
+  tr:hover td { background: #fafbfd; }
+  .durum { font-weight: 600; margin: 8px 0; min-height: 18px; }
+  .hata { color: var(--kotu); } .ok { color: var(--iyi); }
+  .ipucu { font-size: 12px; color: var(--sol); margin: 4px 0 8px; line-height: 1.45; }
+  .pos { color: var(--iyi); } .neg { color: var(--kotu); }
+  a { color: var(--ana2); }
+  .edit { cursor: pointer; border-bottom: 1px dashed #b6c2d4; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: #fff; background: #98a2b3; }
+  .chip.Yüksek { background: var(--kotu); } .chip.Orta { background: var(--uyari); } .chip.İzlenecek { background: #2563eb; }
 
+  /* Öğrenci x davranış tablosu */
+  .mat { max-height: 66vh; overflow: auto; border: 1px solid var(--kenar); border-radius: 12px; background: #fff; margin-bottom: 12px; }
+  .mat table { display: table; border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 12px; }
+  .mat th, .mat td { border-bottom: 1px solid #eef1f5; border-right: 1px solid #f3f5f8; padding: 0; background: #fff; }
+  .mat thead th { position: sticky; top: 0; z-index: 3; background: #eef2f8; min-width: 78px; max-width: 104px; padding: 7px 4px; text-align: center; cursor: pointer; font-size: 11px; line-height: 1.2; vertical-align: bottom; }
+  .mat thead th .alt { font-weight: 700; font-size: 12.5px; margin-top: 2px; }
+  .mat .ad { position: sticky; left: 0; z-index: 2; background: #fff; min-width: 150px; max-width: 172px; padding: 6px 8px; text-align: left; box-shadow: 2px 0 3px rgba(16,24,40,.05); }
+  .mat thead th.ad { z-index: 4; background: #eef2f8; cursor: default; }
+  .mat .ad input { width: auto; margin: 0 6px 0 0; vertical-align: middle; }
+  .mat td.h { text-align: center; }
+  .mat td.ek { text-align: center; min-width: 58px; font-weight: 700; padding: 0 6px; white-space: nowrap; }
+  .hb { width: 100%; height: 46px; border: 0; background: none; font-size: 17px; cursor: pointer; color: inherit; }
+  .hb.pos { color: var(--iyi); } .hb.neg { color: var(--kotu); }
+  .hb.dolu { font-weight: 800; }
+  .hb.pos.dolu { background: #e3f4e8; } .hb.neg.dolu { background: #fde7e5; }
+  .hb:active { filter: brightness(.92); }
+  .ik { border: 1px solid var(--kenar); background: #fff; border-radius: 8px; padding: 5px 8px; margin: 0 2px; cursor: pointer; font-size: 13px; }
+  .tehlike { border: 1px solid #f3c6c2; background: #fff6f5; }
+
+  /* Grafikler */
+  .grf { display: grid; gap: 7px; }
+  .grs { display: grid; grid-template-columns: minmax(110px, 38%) 1fr auto; gap: 8px; align-items: center; font-size: 12px; }
+  .grb { background: #e9edf3; border-radius: 6px; height: 14px; overflow: hidden; }
+  .grd { height: 100%; border-radius: 6px; }
+  .grv { font-weight: 600; white-space: nowrap; }
+
+  .modal { position: fixed; inset: 0; background: rgba(16,24,40,.5); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 12px; }
+  .mkutu { background: #fff; border-radius: 14px; padding: 14px; width: 100%; max-width: 440px; max-height: 88vh; overflow: auto; }
+  .mbas { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .mbas .x { border: 0; background: #eef1f5; border-radius: 8px; padding: 4px 9px; cursor: pointer; }
+  .nt { padding: 7px 0; border-bottom: 1px solid #eef1f5; font-size: 13px; }
+
+  .olcek-bas { text-align: center; margin-bottom: 10px; line-height: 1.5; }
+  .imza { display: flex; justify-content: space-around; margin-top: 46px; }
+  #bildirim { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #202124; color: #fff; padding: 10px 16px; border-radius: 10px; display: none; max-width: 90%; z-index: 60; }
+  #bildirim.goster { display: block; }
+
+  @media print {
+    header, nav, button, details, .gizle, input, select, textarea { display: none !important; }
+    body { background: #fff; }
+    .kart { box-shadow: none; border: 0; padding: 0; }
+    table { display: table; overflow: visible; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <span id="logo"></span>
+  <div class="ad"><b>Gazi Ortaokulu</b><span id="kim">Davranış Takip</span></div>
+  <button id="cikis" onclick="cikisYap()">Çıkış</button>
+</header>
+<nav id="menu"></nav>
+<main id="icerik"></main>
+<div id="bildirim"></div>
+
+<script>
+const LOGO = '<svg viewBox="0 0 64 64" width="%S%" height="%S%" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="31" fill="#fff"/><path d="M32 7 L53 15 V32 C53 45 44 54 32 58 C20 54 11 45 11 32 V15 Z" fill="#14407a"/><path d="M19 30 Q25.500 26 32 30.500 Q38.500 26 45 30 V43 Q38.500 39 32 43.500 Q25.500 39 19 43 Z" fill="#fff"/><path d="M32 30.500 V43.500" stroke="#14407a" stroke-width="1.600"/><path d="M32 13 l2.200 4.500 l4.900 .7 l-3.550 3.450 l.85 4.850 L32 24.100 l-4.400 2.400 l.85 -4.850 L24.900 18.200 l4.900 -.7 Z" fill="#f9c846"/></svg>';
+
+const BIL = 'Bildirimler', AYR = 'Ayarlar', KAYITLAR = 'Kayıtlar';
+let TOKEN = null, ANA = null, YC = null;
+try { TOKEN = sessionStorage.getItem('tk'); } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const trSort = (a, b) => String(a).localeCompare(String(b), 'tr', { numeric: true });
+
+function el(tag, props = {}, kids = []) {
+  const e = document.createElement(tag);
+  Object.assign(e, props);
+  kids.forEach(k => e.append(k));
+  return e;
+}
+
+function cagir(fn, ...args) {
+  return new Promise((ok, hata) => {
+    google.script.run
+      .withSuccessHandler(ok)
+      .withFailureHandler(e => {
+        if (/OTURUM_YOK/.test(e.message)) { cikisYap(true); hata(new Error('Oturum süresi doldu. Yeniden giriş yapın.')); }
+        else hata(e);
+      })[fn](TOKEN, ...args);
+  });
+}
+
+function bildir(mesaj, hata) {
+  const b = $('bildirim');
+  b.textContent = mesaj;
+  b.style.background = hata ? '#b91c1c' : '#202124';
+  b.className = 'goster';
+  clearTimeout(bildir.t);
+  bildir.t = setTimeout(() => { b.className = ''; }, 3500);
+}
+
+function sel(liste, ilk = '— seçin —') {
+  const s = el('select');
+  if (ilk !== null) s.append(new Option(ilk, ''));
+  liste.forEach(x => { const [v, l] = Array.isArray(x) ? x : [x, x]; s.append(new Option(l, v)); });
+  return s;
+}
+
+function tablo(basliklar, satirlar) {
+  const t = el('table');
+  const hd = t.insertRow();
+  basliklar.forEach(b => hd.append(el('th', { textContent: b })));
+  satirlar.forEach(s => {
+    const tr = t.insertRow();
+    s.forEach(x => {
+      const td = tr.insertCell();
+      if (x instanceof Node) td.append(x);
+      else td.textContent = x == null ? '' : String(x);
+    });
+  });
+  return t;
+}
+
+const kart = (baslik, icerik) => el('div', { className: 'kart' }, [el('h3', { textContent: baslik }), icerik]);
+const ozetYaz = s => s.map(x => x.ogr + ' → ' + x.sonuc).join(' · ');
+const yazdirBtn = () => el('button', { className: 'b ikincil gizle', textContent: '🖨 Yazdır / PDF', onclick: () => window.print() });
+
+function modal(baslik, govde) {
+  const ust = el('div', { className: 'modal' });
+  const kapat = () => ust.remove();
+  ust.append(el('div', { className: 'mkutu' }, [
+    el('div', { className: 'mbas' }, [el('b', { textContent: baslik }), el('button', { className: 'x', textContent: '✕', onclick: kapat })]),
+    govde
+  ]));
+  ust.onclick = e => { if (e.target === ust) kapat(); };
+  document.body.append(ust);
+  return kapat;
+}
+
+/* ---------- GRAFİKLER ---------- */
+
+const renkOran = (p, m) => { const o = m ? p / m : 0; return o >= .85 ? '#15803d' : o >= .7 ? '#1f5fae' : o >= .5 ? '#d97706' : '#b91c1c'; };
+
+// satirlar: [{e, v (0-100 yüzde), ek, renk}]
+function cubukGrafik(satirlar) {
+  const k = el('div', { className: 'grf' });
+  satirlar.forEach(s => k.append(el('div', { className: 'grs' }, [
+    el('div', { textContent: s.e }),
+    el('div', { className: 'grb' }, [el('div', { className: 'grd', style: `width:${Math.max(1.5, Math.min(100, s.v))}%;background:${s.renk || '#1f5fae'}` })]),
+    el('div', { className: 'grv', textContent: s.ek })
+  ])));
+  return k;
+}
+
+function cizgiGrafik(nokta) {
+  if (nokta.length < 2) return el('div', { className: 'ipucu', textContent: 'Gidişat grafiği için en az iki haftalık kayıt gerekir.' });
+  const W = 560, H = 170, P = 30;
+  const vs = nokta.map(n => n.c), mn = Math.min(0, ...vs), mx = Math.max(0, ...vs), ar = (mx - mn) || 1;
+  const x = i => P + i * (W - 2 * P) / (nokta.length - 1);
+  const y = v => H - P - (v - mn) / ar * (H - 2 * P);
+  const nok = nokta.map((n, i) => `${x(i)},${y(n.c)}`).join(' ');
+  const daire = nokta.map((n, i) => `<circle cx="${x(i)}" cy="${y(n.c)}" r="3.5" fill="#1f5fae"/><text x="${x(i)}" y="${y(n.c) - 8}" font-size="10" text-anchor="middle" fill="#344054">${n.c}</text>`).join('');
+  const etiket = nokta.map((n, i) => (nokta.length <= 14 || i % 2 === 0) ? `<text x="${x(i)}" y="${H - 8}" font-size="9.5" text-anchor="middle" fill="#667085">${n.e}</text>` : '').join('');
+  return el('div', { innerHTML: `<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="${P}" y1="${y(0)}" x2="${W - P}" y2="${y(0)}" stroke="#c4cad4" stroke-dasharray="4"/><polyline points="${nok}" fill="none" stroke="#1f5fae" stroke-width="2.5"/>${daire}${etiket}</svg>` });
+}
+
+/* ---------- GİRİŞ ---------- */
+
+window.onload = async () => {
+  $('logo').innerHTML = LOGO.replace(/%S%/g, 36);
+  if (TOKEN) { try { await basla(); return; } catch (e) {} }
+  girisEkrani();
+};
+
+function girisEkrani(mesaj) {
+  $('menu').innerHTML = '';
+  $('kim').textContent = 'Davranış Takip';
+  $('cikis').style.display = 'none';
+  const m = $('icerik');
+  m.innerHTML = '';
+  const kad = el('input', { placeholder: 'Kullanıcı adı', autocomplete: 'username' });
+  const sif = el('input', { type: 'password', placeholder: 'Şifre', autocomplete: 'current-password' });
+  const hata = el('div', { className: 'durum hata', textContent: mesaj || '' });
+  const gonder = async () => {
+    hata.textContent = '';
+    try {
+      const r = await new Promise((ok, no) => google.script.run.withSuccessHandler(ok).withFailureHandler(no).giris(kad.value, sif.value));
+      TOKEN = r.token;
+      try { sessionStorage.setItem('tk', TOKEN); } catch (e) {}
+      await basla();
+    } catch (e) { hata.textContent = e.message; }
+  };
+  sif.onkeydown = e => { if (e.key === 'Enter') gonder(); };
+  kad.onkeydown = e => { if (e.key === 'Enter') sif.focus(); };
+  m.append(el('div', { className: 'kart giris' }, [
+    el('div', { innerHTML: LOGO.replace(/%S%/g, 84) }),
+    el('h3', { textContent: 'Gazi Ortaokulu Davranış Takip' }), kad, sif,
+    el('button', { className: 'b', textContent: 'Giriş yap', onclick: gonder }), hata
+  ]));
+}
+
+async function basla() {
+  ANA = await cagir('getAna');
+  const rolAd = ANA.user.admin ? 'Yönetici' : ANA.user.rehber ? 'Rehber Öğretmen' : 'Öğretmen';
+  $('kim').textContent = ANA.user.ad + ' · ' + rolAd;
+  $('cikis').style.display = 'inline-block';
+  menuKur();
+  sekme('giris');
+}
+
+function cikisYap(sessiz) {
+  if (!sessiz && TOKEN) google.script.run.cikis(TOKEN);
+  TOKEN = null; ANA = null;
+  try { sessionStorage.removeItem('tk'); } catch (e) {}
+  girisEkrani(sessiz ? 'Oturum süresi doldu. Yeniden giriş yapın.' : '');
+}
+
+function menuKur() {
+  const s = [['giris', 'Davranış'], ['odev', 'Ödev'], ['perf', 'Performans'], ['rapor', 'Öğrenci Raporu']];
+  if (ANA.rehber.length) s.push(['sinifrapor', 'Sınıf Raporu'], ['dikkat', 'Dikkat Listesi']);
+  s.push(['sifre', 'Şifrem']);
+  if (ANA.user.admin) s.push(['yonetim', 'Yönetim']);
+  const n = $('menu');
+  n.innerHTML = '';
+  s.forEach(([k, l]) => n.append(el('button', { id: 's_' + k, textContent: l, onclick: () => sekme(k) })));
+}
+
+function sekme(k) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('a', b.id === 's_' + k));
+  const m = $('icerik');
+  m.innerHTML = '';
+  ({ giris: gorDavranis, odev: gorOdev, perf: gorPerf, rapor: gorRapor, sinifrapor: gorSinifRapor, dikkat: gorDikkat, sifre: gorSifre, yonetim: gorYonetim })[k](m);
+}
+
+/* ---------- ORTAK: SINIF/DERS SEÇİCİ VE ÖĞRENCİ x SÜTUN TABLOSU ---------- */
+
+function sinifDers(onDegisim) {
+  const sSinif = sel([...new Set(ANA.atamalar.map(a => a.sinif))].sort(trSort), '— Sınıf seçin —');
+  const sDers = sel([], '— Ders seçin —');
+  sSinif.onchange = () => {
+    sDers.innerHTML = '';
+    sDers.append(new Option('— Ders seçin —', ''));
+    const dl = [...new Set(ANA.atamalar.filter(a => a.sinif === sSinif.value).map(a => a.ders))];
+    dl.forEach(d => sDers.append(new Option(d, d)));
+    if (dl.length === 1) sDers.value = dl[0];
+    if (onDegisim) onDegisim();
+  };
+  sDers.onchange = () => { if (onDegisim) onDegisim(); };
+  const kutu = el('div', { className: 'kart' }, [el('label', { textContent: 'Sınıf' }), sSinif, el('label', { textContent: 'Ders' }), sDers]);
+  if (!ANA.atamalar.length) kutu.append(el('div', { className: 'durum hata', textContent: 'Size atanmış sınıf yok. Yöneticiyle görüşün.' }));
+  return { sSinif, sDers, kutu };
+}
+
+// sutunlar: [{key, etiket, alt, sinif}]; ekBasliklar: sağdaki ek sütun başlıkları
+function matrisKur(ogrler, sutunlar, ekBasliklar, onBaslik) {
+  const kap = el('div', { className: 'mat' });
+  const t = el('table');
+  const hr = t.createTHead().insertRow();
+  const hepsi = el('input', { type: 'checkbox', title: 'Tümünü seç' });
+  hr.append(el('th', { className: 'ad' }, [hepsi, document.createTextNode('Öğrenci')]));
+  sutunlar.forEach(s => hr.append(el('th', { className: s.sinif, title: 'Seçili öğrencilere ver (seçim yoksa tüm sınıfa)', onclick: () => onBaslik(s) },
+    [s.etiket, el('div', { className: 'alt', textContent: s.alt })])));
+  ekBasliklar.forEach(b => hr.append(el('th', { textContent: b, style: 'cursor:default' })));
+  const tb = t.createTBody();
+  const satir = {};
+  ogrler.forEach(o => {
+    const tr = tb.insertRow();
+    const chk = el('input', { type: 'checkbox' });
+    const adTd = tr.insertCell();
+    adTd.className = 'ad';
+    adTd.append(chk, document.createTextNode((o.no ? o.no + ' · ' : '') + o.ad));
+    const h = {};
+    sutunlar.forEach(s => { const td = tr.insertCell(); td.className = 'h'; h[s.key] = td; });
+    const ek = ekBasliklar.map(() => { const td = tr.insertCell(); td.className = 'ek'; return td; });
+    satir[o.ad] = { chk, h, ek };
+  });
+  hepsi.onchange = () => ogrler.forEach(o => { satir[o.ad].chk.checked = hepsi.checked; });
+  kap.append(t);
+  return { kap, satir };
+}
+
+const seciliOgr = M => Object.keys(M.satir).filter(k => M.satir[k].chk.checked);
+const sutunOlustur = liste => liste.map(d => ({ key: d.ad, etiket: d.ad, alt: (d.puan > 0 ? '+' : '') + d.puan, sinif: d.puan >= 0 ? 'pos' : 'neg', puan: d.puan }));
+
+function ekleKarti(tur, yenile) {
+  const kat = sel([['Olumlu', 'Olumlu'], ['Olumsuz', 'Olumsuz']], null);
+  const ad = el('input', { placeholder: tur === 'dav' ? 'Davranış adı' : 'Ödev durumu (örn. Defteri eksik)' });
+  const puan = sel(['1', '2', '3', '4', '5'].map(x => [x, x + ' puan']), null);
+  const btn = el('button', {
+    className: 'b', textContent: 'Ekle',
+    onclick: async () => {
+      try {
+        await cagir(tur === 'dav' ? 'davranisTanimEkle' : 'odevSecenekEkle', kat.value, ad.value, Number(puan.value));
+        ANA = await cagir('getAna');
+        bildir('Eklendi.');
+        yenile();
+      } catch (e) { bildir(e.message, true); }
+    }
+  });
+  return el('details', { className: 'kart' }, [
+    el('summary', { textContent: tur === 'dav' ? '＋ Yeni davranış ekle' : '＋ Yeni ödev durumu ekle' }),
+    el('div', { className: 'form', style: 'margin-top:8px' }, [kat, ad, puan]), btn
+  ]);
+}
+
+/* ---------- DAVRANIŞ ---------- */
+
+function gorDavranis(c) {
+  const durum = el('div', { className: 'durum' });
+  const alan = el('div');
+  const not = el('input', { placeholder: 'Hızlı not (bir sonraki dokunuşa eklenir)' });
+  const SUT = sutunOlustur(ANA.davranis);
+  let M = null, SAY = {}, TOP = {}, NOT = {}, SON = null, MOD = 'ekle';
+  const geri = el('button', { className: 'b ikincil', textContent: '↶ Geri al', disabled: true, onclick: geriAl });
+  const bEkle = el('button', { className: 'seg a', textContent: '＋ Ekle', onclick: () => modDegis('ekle') });
+  const bDuzelt = el('button', { className: 'seg', textContent: '✎ Düzelt', onclick: () => modDegis('duzelt') });
+  const ipucu = el('div', { className: 'ipucu' });
+  const sd = sinifDers(yukle);
+
+  function modDegis(m) {
+    MOD = m;
+    bEkle.classList.toggle('a', m === 'ekle');
+    bDuzelt.classList.toggle('a', m === 'duzelt');
+    ipucu.textContent = m === 'ekle'
+      ? 'Hücreye dokunmak davranışı hemen kaydeder. Sütun başlığı seçili öğrencilere (seçim yoksa tüm sınıfa) toplu verir.'
+      : 'Düzeltme modu: hücreye dokunun, bugünkü adedi yazın (0 = sıfırla). ↺ düğmesi öğrencinin bugünkü kayıtlarını sıfırlar.';
+  }
+  modDegis('ekle');
+
+  function hucre(o, s) {
+    const td = M.satir[o].h[s.key];
+    const n = SAY[o + '|' + s.key] || 0;
+    td.innerHTML = '';
+    td.append(el('button', { className: 'hb ' + s.sinif + (n ? ' dolu' : ''), textContent: n ? String(n) : (s.puan >= 0 ? '+' : '−'), onclick: () => (MOD === 'ekle' ? ver([o], s) : duzelt(o, s)) }));
+  }
+
+  function top(o) {
+    const v = TOP[o] || 0;
+    const td = M.satir[o].ek[0];
+    td.textContent = v;
+    td.className = 'ek ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '');
+  }
+
+  function islem(o) {
+    const n = (NOT[o] || []).length;
+    const td = M.satir[o].ek[1];
+    td.innerHTML = '';
+    td.append(
+      el('button', { className: 'ik', title: 'Not ekle / gör', textContent: '📝' + (n ? ' ' + n : ''), onclick: () => notAc([o]) }),
+      el('button', { className: 'ik', title: 'Bugünkü kayıtlarını sıfırla', textContent: '↺', onclick: () => sifirla(o) })
+    );
+  }
+
+  async function yukle() {
+    alan.innerHTML = '';
+    M = null; SON = null; geri.disabled = true;
+    if (!sd.sSinif.value || !sd.sDers.value) return;
+    alan.textContent = 'Yükleniyor...';
+    try {
+      const r = await cagir('sinifMatris', sd.sSinif.value, sd.sDers.value);
+      SAY = r.bugun; TOP = r.toplam; NOT = r.notlar;
+      const ogrler = ANA.ogrenciler.filter(o => o.sinif === sd.sSinif.value);
+      M = matrisKur(ogrler, SUT, ['Ders toplamı', 'İşlem'], s => {
+        let n = seciliOgr(M);
+        if (!n.length) {
+          if (!confirm(`"${s.key}" sınıftaki ${ogrler.length} öğrencinin tamamına verilsin mi?`)) return;
+          n = ogrler.map(o => o.ad);
+        } else if (!confirm(`"${s.key}" ${n.length} seçili öğrenciye verilsin mi?`)) return;
+        ver(n, s);
+        n.forEach(o => { M.satir[o].chk.checked = false; });
+      });
+      ogrler.forEach(o => { SUT.forEach(s => hucre(o.ad, s)); top(o.ad); islem(o.ad); });
+      alan.innerHTML = '';
+      alan.append(M.kap);
+    } catch (e) { alan.textContent = e.message; }
+  }
+
+  async function ver(names, s) {
+    if (!M) return bildir('Önce sınıf ve dersi seçin.', true);
+    const yorum = not.value;
+    not.value = '';
+    names.forEach(o => { SAY[o + '|' + s.key] = (SAY[o + '|' + s.key] || 0) + 1; TOP[o] = (TOP[o] || 0) + s.puan; hucre(o, s); top(o); });
+    try {
+      const r = await cagir('davranisKaydet', sd.sSinif.value, sd.sDers.value, names, s.key, yorum);
+      SON = { parti: r.parti, names, s };
+      geri.disabled = false;
+      durum.className = 'durum ok';
+      durum.textContent = `✓ ${s.key} → ${names.length === 1 ? names[0] : names.length + ' öğrenci'}` + (r.sonuclar.length ? ' | ' + ozetYaz(r.sonuclar) : '');
+    } catch (e) {
+      names.forEach(o => { SAY[o + '|' + s.key]--; TOP[o] -= s.puan; hucre(o, s); top(o); });
+      durum.className = 'durum hata';
+      durum.textContent = e.message;
+    }
+  }
+
+  async function duzelt(o, s) {
+    const n = SAY[o + '|' + s.key] || 0;
+    const y = prompt(`${o} · ${s.key}\nBugünkü adet (şu an ${n}). 0 yazarsanız sıfırlanır:`, String(n));
+    if (y === null) return;
+    const a = Math.round(Number(y));
+    if (!(a >= 0 && a <= 50)) return bildir('Adet 0 ile 50 arasında olmalı.', true);
+    try {
+      const r = await cagir('adetAyarla', sd.sSinif.value, sd.sDers.value, o, s.key, a);
+      TOP[o] = (TOP[o] || 0) + (a - n) * s.puan;
+      SAY[o + '|' + s.key] = a;
+      hucre(o, s); top(o);
+      durum.className = 'durum ok';
+      durum.textContent = `✓ ${o} · ${s.key}: bugünkü adet ${a}` + (r.sonuc ? ' | ' + r.sonuc : '');
+    } catch (e) { durum.className = 'durum hata'; durum.textContent = e.message; }
+  }
+
+  async function sifirla(o) {
+    if (!confirm(`${o} için bugünkü tüm davranış kayıtları sıfırlansın mı?`)) return;
+    try {
+      const n = await cagir('ogrSifirla', sd.sSinif.value, sd.sDers.value, o);
+      bildir(n + ' kayıt silindi.');
+      yukle();
+    } catch (e) { bildir(e.message, true); }
+  }
+
+  async function geriAl() {
+    if (!SON) return;
+    const x = SON;
+    try {
+      await cagir('geriAl', x.parti);
+      x.names.forEach(o => { SAY[o + '|' + x.s.key]--; TOP[o] -= x.s.puan; hucre(o, x.s); top(o); });
+      SON = null; geri.disabled = true;
+      durum.className = 'durum ok';
+      durum.textContent = 'Son işlem geri alındı.';
+    } catch (e) { durum.className = 'durum hata'; durum.textContent = e.message; }
+  }
+
+  function notAc(names) {
+    const metin = el('textarea', { rows: 3, placeholder: 'Örn: Bugün arkadaşına yardım etti, grup çalışmasında liderlik yaptı...' });
+    const puan = sel([['0', 'Puan yok'], ['1', '+1'], ['2', '+2'], ['3', '+3'], ['-1', '−1'], ['-2', '−2'], ['-3', '−3']], null);
+    const govde = el('div');
+    let kapat;
+    if (names.length === 1) {
+      const mevcut = NOT[names[0]] || [];
+      if (mevcut.length) {
+        govde.append(el('label', { textContent: 'Bugünkü notlar' }));
+        mevcut.forEach(n => govde.append(el('div', { className: 'nt' }, [
+          document.createTextNode(n.metin + (n.puan ? ` (${n.puan > 0 ? '+' : ''}${n.puan})` : '') + ' '),
+          el('a', { href: '#', textContent: 'sil', onclick: async e => {
+            e.preventDefault();
+            try { await cagir('notSil', n.parti, names[0]); kapat(); yukle(); } catch (er) { bildir(er.message, true); }
+          } })
+        ])));
+      }
+    }
+    govde.append(
+      el('label', { textContent: names.length > 1 ? `${names.length} öğrenciye ortak not` : 'Yeni not · ' + names[0] }), metin,
+      el('label', { textContent: 'İsteğe bağlı puan' }), puan,
+      el('button', { className: 'b', textContent: 'Notu kaydet', onclick: async () => {
+        try {
+          const r = await cagir('notKaydet', sd.sSinif.value, sd.sDers.value, names, metin.value, Number(puan.value));
+          kapat();
+          yukle();
+          bildir('Not kaydedildi.' + (r.sonuclar.length ? ' ' + ozetYaz(r.sonuclar) : ''));
+        } catch (e) { bildir(e.message, true); }
+      } })
+    );
+    kapat = modal('📝 Not', govde);
+  }
+
+  const topluNot = el('button', { className: 'b ikincil', textContent: '📝 Seçililere not', onclick: () => {
+    const n = M ? seciliOgr(M) : [];
+    if (!n.length) return bildir('Önce öğrencileri işaretleyin.', true);
+    notAc(n);
+  } });
+
+  const tumunuSil = el('button', { className: 'b sil', textContent: '🗑 Bugünkü tüm tabloyu sil', onclick: async () => {
+    if (!M) return bildir('Önce sınıf ve dersi seçin.', true);
+    if (!confirm(`${sd.sSinif.value} · ${sd.sDers.value}: bugün girdiğiniz TÜM davranış ve notlar silinecek. Emin misiniz?`)) return;
+    try { const n = await cagir('bugunuSil', sd.sSinif.value, sd.sDers.value); bildir(n + ' kayıt silindi.'); yukle(); }
+    catch (e) { bildir(e.message, true); }
+  } });
+
+  c.append(
+    sd.kutu,
+    el('div', { className: 'kart' }, [
+      el('div', { className: 'arac' }, [el('div', {}, [bEkle, bDuzelt]), geri, topluNot]),
+      not, ipucu, durum
+    ]),
+    alan,
+    el('div', { className: 'kart tehlike' }, [tumunuSil, el('div', { className: 'ipucu', textContent: 'Yalnızca bugün sizin girdiğiniz davranış ve notlar silinir; ödev kayıtları ve diğer öğretmenlerin kayıtları etkilenmez.' })]),
+    ekleKarti('dav', () => sekme('giris'))
+  );
+}
+
+/* ---------- ÖDEV ---------- */
+
+function gorOdev(c) {
+  const konu = el('input', { placeholder: 'Ödev konusu (örn. Unit 3 workbook s.42)' });
+  const durum = el('div', { className: 'durum' });
+  const alan = el('div');
+  const SUT = sutunOlustur(ANA.odev);
+  const secim = {};
+  let M = null, ogrler = [];
+  const sd = sinifDers(kur);
+
+  function ciz(o) {
+    SUT.forEach(s => {
+      const td = M.satir[o].h[s.key];
+      const sec = secim[o] === s.key;
+      td.innerHTML = '';
+      td.append(el('button', { className: 'hb ' + s.sinif + (sec ? ' dolu' : ''), textContent: sec ? '✓' : '○', onclick: () => { secim[o] = sec ? '' : s.key; ciz(o); } }));
+    });
+  }
+
+  function kur() {
+    alan.innerHTML = '';
+    M = null;
+    Object.keys(secim).forEach(k => delete secim[k]);
+    if (!sd.sSinif.value) return;
+    ogrler = ANA.ogrenciler.filter(o => o.sinif === sd.sSinif.value);
+    M = matrisKur(ogrler, SUT, [], s => {
+      let n = seciliOgr(M);
+      if (!n.length) {
+        if (!confirm(`Tüm sınıf için "${s.key}" işaretlensin mi?`)) return;
+        n = ogrler.map(o => o.ad);
+      }
+      n.forEach(o => { secim[o] = s.key; ciz(o); });
+    });
+    ogrler.forEach(o => ciz(o.ad));
+    alan.append(M.kap);
+  }
+
+  const kaydet = el('button', {
+    className: 'b', textContent: 'Ödevi kaydet',
+    onclick: async () => {
+      if (!sd.sSinif.value || !sd.sDers.value) return bildir('Sınıf ve dersi seçin.', true);
+      if (!konu.value.trim()) return bildir('Ödev konusunu yazın.', true);
+      const liste = Object.keys(secim).filter(o => secim[o]).map(o => ({ ogr: o, secenek: secim[o] }));
+      if (!liste.length) return bildir('Hiçbir öğrenci işaretlenmedi.', true);
+      durum.className = 'durum';
+      durum.textContent = 'Kaydediliyor...';
+      try {
+        const s = await cagir('odevKaydet', sd.sSinif.value, sd.sDers.value, konu.value.trim(), liste);
+        durum.className = 'durum ok';
+        durum.textContent = `${liste.length} öğrenci için ödev durumu kaydedildi.` + (s.length ? ' | ' + ozetYaz(s) : '');
+        konu.value = '';
+        kur();
+      } catch (e) { durum.className = 'durum hata'; durum.textContent = e.message; }
+    }
+  });
+
+  sd.kutu.append(el('label', { textContent: 'Ödev konusu' }), konu);
+  c.append(sd.kutu, alan, el('div', { className: 'kart' }, [kaydet, el('button', { className: 'b ikincil', textContent: 'İşaretleri temizle', onclick: kur }), durum,
+    el('div', { className: 'ipucu', textContent: 'Her öğrenci için bir ödev durumu işaretleyin (✓). Sütun başlığı seçili öğrencilere (seçim yoksa tüm sınıfa) toplu işaret verir. İşaretsiz bırakılanlar kaydedilmez. Aynı konuyu yeniden kaydederseniz önceki işaret güncellenir.' })]),
+    ekleKarti('odv', () => sekme('odev')));
+}
+
+/* ---------- PERFORMANS ---------- */
+
+function olcekCiz(c, d) {
+  c.innerHTML = '';
+  const bas = el('div', { className: 'olcek-bas' }, [
+    el('b', { textContent: `${d.okul} · Ders ve Etkinliklere Katılım Değerlendirme Ölçeği` }),
+    el('div', { textContent: `${d.yil} · ${d.performans}${d.donem ? ' · ' + d.donem : ''}` }),
+    el('div', { textContent: `Sınıf: ${d.sinif} · Ders: ${d.ders} · Ders öğretmeni: ${d.ogretmen}` })
+  ]);
+  const basliklar = ['No', 'Ad Soyad', ...d.kriterler.map(k => `${k.ad} (${k.maks})`), `Toplam (${d.toplamMaks})`, 'Düzey'];
+  c.append(el('div', { className: 'kart' }, [bas, tablo(basliklar, d.satirlar),
+    el('div', { className: 'imza' }, [el('div', { textContent: 'Ders Öğretmeni' }), el('div', { textContent: 'Okul Müdürü' })])]),
+    el('div', { className: 'ipucu gizle', textContent: 'Hiç kaydı olmayan öğrencilerin puanı, kriterlerin başlangıç değerinden hesaplanır. Ölçeği yazdırıp iki nüsha olarak düzenleyebilirsiniz.' }),
+    yazdirBtn());
+}
+
+function gorPerf(c) {
+  const sd = sinifDers();
+  const cikti = el('div');
+  sd.kutu.append(el('button', {
+    className: 'b', textContent: 'Göster',
+    onclick: async () => {
+      if (!sd.sSinif.value || !sd.sDers.value) return bildir('Sınıf ve dersi seçin.', true);
+      cikti.textContent = 'Yükleniyor...';
+      try {
+        const r = await cagir('sinifPerformans', sd.sSinif.value, sd.sDers.value);
+        cikti.innerHTML = '';
+        cikti.append(kart(`${sd.sSinif.value} · ${sd.sDers.value} · ders içi katılım puanları`, tablo(r.basliklar, r.satirlar)));
+        if (!r.ozet.length) { cikti.append(el('div', { className: 'kart', textContent: 'Etkin performans tanımı yok. Yönetim → Performanslar bölümünden ekleyin.' })); return; }
+
+        cikti.append(kart('Başarı grafiği · sınıf ortalamaları (100 üzerinden)', cubukGrafik(r.ozet.map(x => ({
+          e: x.ad, v: x.ort == null || !x.maks ? 0 : x.ort * 100 / x.maks, ek: x.ort == null ? '—' : `${x.ort} / ${x.maks}`, renk: x.ort == null ? '#98a2b3' : renkOran(x.ort, x.maks)
+        })))));
+        r.ozet.forEach(x => cikti.append(kart(`${x.ad} · düzey dağılımı (${x.n} öğrenci)`, cubukGrafik(x.duzeyler.map(d => ({
+          e: d, v: x.n ? (x.dagilim[d] || 0) * 100 / x.n : 0, ek: String(x.dagilim[d] || 0), renk: '#1f5fae'
+        }))))));
+
+        const sec = sel(r.ozet.map(x => x.ad), null);
+        const olc = el('div');
+        cikti.append(kart('Katılım değerlendirme ölçeği (idareye teslim formu)', el('div', {}, [sec,
+          el('button', { className: 'b', textContent: 'Ölçeği oluştur', onclick: async () => {
+            try { olcekCiz(olc, await cagir('olcekCizelgesi', sd.sSinif.value, sd.sDers.value, sec.value)); } catch (e) { bildir(e.message, true); }
+          } }), olc])));
+      } catch (e) { cikti.textContent = e.message; }
+    }
+  }));
+  c.append(sd.kutu, cikti);
+}
+
+/* ---------- RAPORLAR ---------- */
+
+function ogrRaporCiz(c, ad, r) {
+  const kd = [];
+  r.perf.forEach(x => x.detay.forEach(d => kd.push([x.ders, x.ad, d.kriter, `${d.puan} / ${d.maks}`, d.n])));
+  c.append(
+    kart(`${ad} · ${r.sinif}`, tablo(['Toplam puan', 'Genel ortalama (derslerin)'], [[r.toplam, r.ortalama]])),
+    kart('Ders özeti (tüm öğretmenler)', tablo(['Ders', 'Puan', 'Olumlu kayıt', 'Olumsuz kayıt'], r.dersOzet.map(x => [x.ders, x.toplam, x.olumlu, x.olumsuz]))),
+    kart('Ders içi performans · başarı grafiği (100 üzerinden)', r.perf.length
+      ? cubukGrafik(r.perf.map(x => ({ e: `${x.ders} · ${x.ad}`, v: x.maks ? x.puan * 100 / x.maks : 0, ek: `${x.puan}/${x.maks} · ${x.duzey}`, renk: renkOran(x.puan, x.maks) })))
+      : el('div', { className: 'ipucu', textContent: 'Henüz performans verisi yok.' })),
+    el('details', { className: 'kart' }, [el('summary', { textContent: 'Kriter bazında ayrıntı' }), tablo(['Ders', 'Performans', 'Kriter', 'Puan', 'Kayıt'], kd)]),
+    kart('Haftalık puan gidişatı (birikimli)', cizgiGrafik(r.trend)),
+    kart('Davranış ve ödev sayımı', tablo(['Tür', 'Kayıt', 'Adet', 'Puan'], r.sayim)),
+    kart('Zaman çizelgesi (hangi derste, ne zaman, ne yaptı)', tablo(['Tarih', 'Ders', 'Öğretmen', 'Tür', 'Konu', 'Kayıt', 'Puan', 'Yorum'], r.kayitlar)),
+    kart('Veli ve tutanak bildirimleri', tablo(['Tarih', 'Ders', 'Seviye', 'Alıcı', 'Durum', 'Yapıldı'], r.bildirimler)),
+    yazdirBtn()
+  );
+}
+
+function tarihAlani() {
+  const bas = el('input', { type: 'date' }), bit = el('input', { type: 'date' });
+  const kutu = el('div', { className: 'form' }, [el('div', {}, [el('label', { textContent: 'Başlangıç tarihi' }), bas]), el('div', {}, [el('label', { textContent: 'Bitiş tarihi' }), bit])]);
+  return { bas, bit, kutu };
+}
+
+function gorRapor(c) {
+  const liste = ANA.ogrenciler.slice().sort((a, b) => trSort(a.sinif, b.sinif) || trSort(a.no, b.no) || a.ad.localeCompare(b.ad, 'tr'));
+  const s = sel(liste.map((o, i) => [i, `${o.sinif} · ${o.ad}`]), '— Öğrenci seçin —');
+  const t = tarihAlani();
+  const cikti = el('div');
+  const git = async () => {
+    cikti.innerHTML = '';
+    if (s.value === '') return;
+    const o = liste[Number(s.value)];
+    cikti.textContent = 'Yükleniyor...';
+    try {
+      const r = await cagir('ogrenciRapor', o.sinif, o.ad, t.bas.value, t.bit.value);
+      cikti.innerHTML = '';
+      ogrRaporCiz(cikti, o.ad, r);
+    } catch (e) { cikti.textContent = e.message; }
+  };
+  s.onchange = git;
+  c.append(el('div', { className: 'kart' }, [s, t.kutu, el('button', { className: 'b', textContent: 'Raporu getir', onclick: git })]), cikti);
+}
+
+// Öğrenci adına dokununca ayrıntılı rapor açan bağlantı
+function ogrBaglanti(ad, sinif, detay, t) {
+  return el('a', { href: '#', textContent: ad, onclick: async e => {
+    e.preventDefault();
+    detay.textContent = 'Yükleniyor...';
+    try {
+      const d = await cagir('ogrenciRapor', sinif, ad, t.bas.value, t.bit.value);
+      detay.innerHTML = '';
+      ogrRaporCiz(detay, ad, d);
+      detay.scrollIntoView({ behavior: 'smooth' });
+    } catch (er) { detay.textContent = er.message; }
+  } });
+}
+
+function gorSinifRapor(c) {
+  const s = sel(ANA.rehber, '— Sınıf seçin —');
+  const t = tarihAlani();
+  const cikti = el('div'), detay = el('div');
+  const git = async () => {
+    cikti.innerHTML = ''; detay.innerHTML = '';
+    if (!s.value) return bildir('Sınıf seçin.', true);
+    cikti.textContent = 'Yükleniyor...';
+    try {
+      const r = await cagir('sinifRapor', s.value, t.bas.value, t.bit.value);
+      const sat = r.satirlar.map(x => [x[0], ogrBaglanti(x[1], s.value, detay, t), ...x.slice(2)]);
+      sat.push(['', el('b', { textContent: 'Sınıf ortalaması' }), ...r.ort, '', '', '', '', '']);
+      cikti.innerHTML = '';
+      cikti.append(
+        kart(`${s.value} · tüm derslerin toplu raporu`, tablo(['No', 'Öğrenci', ...r.dersler, 'Ortalama', 'Toplam', 'Olumlu', 'Olumsuz', 'Ödev sorunu'], sat)),
+        el('div', { className: 'ipucu', textContent: 'Ders sütunları, o dersin öğretmenlerinin girdiği toplam puandır. Ortalama dersler arası aritmetik ortalamadır. Ayrıntı için öğrenci adına dokunun.' }),
+        yazdirBtn()
+      );
+    } catch (e) { cikti.textContent = e.message; }
+  };
+  c.append(el('div', { className: 'kart' }, [s, t.kutu, el('button', { className: 'b', textContent: 'Raporu getir', onclick: git })]), cikti, detay);
+}
+
+// Rehber öğretmenler ve yönetici: davranış bozukluğu ve derslerde sorun çıkaran öğrenciler
+function gorDikkat(c) {
+  const s = sel(ANA.rehber, 'Tüm sınıflar');
+  const t = tarihAlani();
+  const hepsi = el('input', { type: 'checkbox', style: 'width:auto;margin:0 6px 0 0' });
+  const cikti = el('div'), detay = el('div');
+  const git = async () => {
+    cikti.innerHTML = ''; detay.innerHTML = '';
+    cikti.textContent = 'Yükleniyor...';
+    try {
+      const r = await cagir('dikkatListesi', s.value, t.bas.value, t.bit.value, hepsi.checked);
+      const sat = r.map(x => [x[0], x[1], ogrBaglanti(x[2], x[0], detay, t), el('span', { className: 'chip ' + x[3], textContent: x[3] }), ...x.slice(4)]);
+      cikti.innerHTML = '';
+      cikti.append(
+        kart(`Dikkat listesi (${r.length} öğrenci)`, r.length
+          ? tablo(['Sınıf', 'No', 'Öğrenci', 'Risk', 'En sorunlu ders (puan)', 'Olumsuz kayıt', 'Sorunlu ders sayısı', 'Ödev sorunu', 'Son 14 gün olumsuz', 'Açık bildirim'], sat)
+          : el('div', { textContent: 'Seçilen kapsamda dikkat gerektiren öğrenci bulunmuyor.' })),
+        el('div', { className: 'ipucu', textContent: 'Yüksek: en düşük ders puanı tutanak eşiğinde veya açık tutanak var. Orta: veli bilgilendirme eşiğinde, 3 veya daha fazla derste negatif ya da son 14 günde 6+ olumsuz kayıt. İzlenecek: toplam negatif ve en az 3 olumsuz kayıt. Öğrenci adına dokunarak tüm derslerdeki kayıtlarını görebilirsiniz.' }),
+        yazdirBtn()
+      );
+    } catch (e) { cikti.textContent = e.message; }
+  };
+  c.append(el('div', { className: 'kart' }, [
+    el('label', { textContent: 'Sınıf' }), s, t.kutu,
+    el('label', { style: 'color:#1d2330;font-size:13px' }, [hepsi, document.createTextNode('Riskli olmayan öğrencileri de göster')]),
+    el('button', { className: 'b', textContent: 'Listele', onclick: git })
+  ]), cikti, detay);
+}
+
+/* ---------- ŞİFREM ---------- */
+
+function gorSifre(c) {
+  const eski = el('input', { type: 'password', placeholder: 'Mevcut şifre', autocomplete: 'current-password' });
+  const yeni = el('input', { type: 'password', placeholder: 'Yeni şifre (en az 8 karakter)', autocomplete: 'new-password' });
+  const tekrar = el('input', { type: 'password', placeholder: 'Yeni şifre (tekrar)', autocomplete: 'new-password' });
+  const durum = el('div', { className: 'durum' });
+  c.append(el('div', { className: 'kart' }, [
+    el('h3', { textContent: 'Şifre değiştir' }), eski, yeni, tekrar,
+    el('button', {
+      className: 'b', textContent: 'Değiştir',
+      onclick: async () => {
+        if (yeni.value !== tekrar.value) { durum.className = 'durum hata'; durum.textContent = 'Yeni şifreler aynı değil.'; return; }
+        try {
+          await cagir('sifreDegistir', eski.value, yeni.value);
+          durum.className = 'durum ok'; durum.textContent = 'Şifreniz değiştirildi.';
+          eski.value = yeni.value = tekrar.value = '';
+        } catch (e) { durum.className = 'durum hata'; durum.textContent = e.message; }
+      }
+    }), durum
+  ]));
+}
+
+/* ---------- YÖNETİM ---------- */
+
+const YONETIM = ['Kullanıcılar', 'Sınıf Listesi Yükle', 'Atamalar', 'Rehber Öğretmenler', 'Öğrenciler', 'Davranışlar', 'Ödev Seçenekleri', 'Performanslar', 'Ölçek Kriterleri', BIL, KAYITLAR, AYR];
+const DUZ = ['Öğrenciler', 'Davranışlar', 'Ödev Seçenekleri', 'Performanslar', 'Ölçek Kriterleri'];
+
+function gorYonetim(c) {
+  const menu = el('div', { className: 'kart' });
+  YC = el('div');
+  YONETIM.forEach(ad => menu.append(el('button', { className: 'b ikincil', textContent: ad, onclick: () => yonetimAc(ad) })));
+  c.append(menu, YC);
+  yonetimAc(YONETIM[0]);
+}
+
+async function yonetimAc(ad, param) {
+  YC.innerHTML = 'Yükleniyor...';
+  try {
+    if (ad === 'Kullanıcılar') await ekKullanicilar();
+    else if (ad === 'Sınıf Listesi Yükle') ekYukle();
+    else if (ad === 'Atamalar') await ekAtamalar(param);
+    else if (ad === 'Rehber Öğretmenler') await ekRehber();
+    else await tabloAc(ad);
+  } catch (e) { YC.textContent = e.message; }
+}
+
+async function ekKullanicilar() {
+  const d = await cagir('kullanicilar');
+  const rolAd = { Admin: 'Yönetici', Rehber: 'Rehber öğretmen', Öğretmen: 'Öğretmen' };
+  const satirlar = d.map(u => [u.kad, u.ad, rolAd[u.rol] || u.rol, u.aktif ? 'Aktif' : 'Pasif', u.sonGiris, u.atama,
+    el('span', {}, [
+      el('button', {
+        className: 'b ikincil', textContent: 'Şifre sıfırla',
+        onclick: async () => {
+          const y = prompt(u.ad + ' için yeni şifre (en az 6 karakter):');
+          if (!y) return;
+          try { await cagir('sifreSifirla', u.kad, y); bildir('Şifre güncellendi.'); } catch (e) { bildir(e.message, true); }
+        }
+      }),
+      el('button', {
+        className: 'b ikincil', textContent: u.aktif ? 'Pasifleştir' : 'Aktifleştir',
+        onclick: async () => { try { await cagir('kullaniciDurum', u.kad, !u.aktif); yonetimAc('Kullanıcılar'); } catch (e) { bildir(e.message, true); } }
+      })
+    ])]);
+
+  const kad = el('input', { placeholder: 'Kullanıcı adı' });
+  const ad = el('input', { placeholder: 'Ad soyad' });
+  const rol = sel([['Öğretmen', 'Öğretmen'], ['Rehber', 'Rehber öğretmen (tüm sınıfları görür)'], ['Admin', 'Yönetici']], null);
+  const sif = el('input', { placeholder: 'Şifre (en az 6 karakter)' });
+  const ekle = el('button', {
+    className: 'b', textContent: 'Kullanıcı ekle',
+    onclick: async () => {
+      try { await cagir('kullaniciEkle', kad.value, ad.value, rol.value, sif.value); bildir('Kullanıcı eklendi.'); yonetimAc('Kullanıcılar'); }
+      catch (e) { bildir(e.message, true); }
+    }
+  });
+
+  YC.innerHTML = '';
+  YC.append(
+    kart('Kullanıcılar', tablo(['Kullanıcı adı', 'Ad soyad', 'Rol', 'Durum', 'Son giriş', 'Atamalar', 'İşlem'], satirlar)),
+    kart('Yeni kullanıcı', el('div', {}, [el('div', { className: 'form' }, [kad, ad, rol, sif]), ekle,
+      el('div', { className: 'ipucu', textContent: 'Rehber öğretmen rolü okul psikolojik danışmanı içindir: tüm sınıfların raporlarını ve dikkat listesini görür, kayıt girmez. Kayıt girmesi için ayrıca sınıf ataması yapın.' })]))
+  );
+}
+
+function ekYukle() {
+  const ta = el('textarea', { rows: 10, placeholder: '5-A\t1\tAli Yılmaz\tAyşe Yılmaz\t05321234567\tMehmet Yılmaz\t05331234567\tveli@mail.com\t' });
+  const durum = el('div', { className: 'durum' });
+  YC.innerHTML = '';
+  YC.append(el('div', { className: 'kart' }, [
+    el('h3', { textContent: 'Sınıf listesi yükle' }),
+    el('div', { className: 'ipucu', textContent: 'E-tablodan şu sütun sırasıyla kopyalayıp yapıştırın: Sınıf, No, Ad Soyad, Anne Adı, Anne Telefon, Baba Adı, Baba Telefon, Veli E-posta, Öğrenci E-posta. İlk üç sütun zorunludur. Aynı sınıf ve ad yeniden yüklenirse bilgiler güncellenir.' }),
+    ta,
+    el('button', {
+      className: 'b', textContent: 'Yükle',
+      onclick: async () => {
+        durum.className = 'durum'; durum.textContent = 'Yükleniyor...';
+        try {
+          const r = await cagir('siniflariYukle', ta.value);
+          durum.className = 'durum ok';
+          durum.textContent = `Eklenen: ${r.yeni}, güncellenen: ${r.guncel}, atlanan: ${r.atla}. Sınıflar: ${r.siniflar.join(', ')}`;
+          ta.value = '';
+        } catch (e) { durum.className = 'durum hata'; durum.textContent = e.message; }
+      }
+    }), durum
+  ]));
+}
+
+async function ekAtamalar(secKad) {
+  const [kul, sin] = await Promise.all([cagir('kullanicilar'), cagir('sinifListesi')]);
+  YC.innerHTML = '';
+  if (!sin.length) { YC.append(el('div', { className: 'kart', textContent: 'Önce "Sınıf Listesi Yükle" bölümünden sınıfları yükleyin.' })); return; }
+
+  const sKul = sel(kul.filter(u => u.aktif).map(u => [u.kad, `${u.ad} (${u.kad})`]), '— Öğretmen seçin —');
+  if (secKad) sKul.value = secKad;
+  sKul.onchange = () => yonetimAc('Atamalar', sKul.value);
+  const alan = el('div');
+  YC.append(el('div', { className: 'kart' }, [el('label', { textContent: 'Öğretmen' }), sKul]), alan);
+  if (!sKul.value) return;
+
+  const u = kul.find(x => x.kad === sKul.value);
+  const mevcut = u.atamaListe.map(a => [a.sinif, a.ders, el('button', {
+    className: 'b sil', textContent: 'Kaldır',
+    onclick: async () => { try { await cagir('atamaSil', u.kad, a.sinif, a.ders); yonetimAc('Atamalar', u.kad); } catch (e) { bildir(e.message, true); } }
+  })]);
+
+  const ders = el('input', { placeholder: 'Ders adı (örn. İngilizce)' });
+  const kutular = el('div', { className: 'form' }, sin.map(s => el('label', { style: 'margin:0;color:#1d2330;font-size:14px' }, [el('input', { type: 'checkbox', value: s, style: 'width:auto;margin:0 6px 0 0' }), document.createTextNode(s)])));
+  const ata = el('button', {
+    className: 'b', textContent: 'Seçili sınıfları ata',
+    onclick: async () => {
+      const secili = [...kutular.querySelectorAll('input:checked')].map(i => i.value);
+      try {
+        const n = await cagir('atamaEkle', u.kad, secili, ders.value);
+        bildir(n + ' atama eklendi.');
+        yonetimAc('Atamalar', u.kad);
+      } catch (e) { bildir(e.message, true); }
+    }
+  });
+
+  alan.append(
+    kart(u.ad + ' · mevcut atamalar', mevcut.length ? tablo(['Sınıf', 'Ders', 'İşlem'], mevcut) : el('div', { textContent: 'Henüz atama yok.' })),
+    kart('Yeni atama', el('div', {}, [el('label', { textContent: 'Ders' }), ders, el('label', { textContent: 'Sınıflar' }), kutular, ata]))
+  );
+}
+
+async function ekRehber() {
+  const d = await cagir('rehberler');
+  YC.innerHTML = '';
+  if (!d.siniflar.length) { YC.append(el('div', { className: 'kart', textContent: 'Önce sınıf listesini yükleyin.' })); return; }
+  const satirlar = d.siniflar.map(x => {
+    const s = sel(d.kullanicilar.map(u => [u.kad, `${u.ad} (${u.kad})`]), '— rehber yok —');
+    s.value = x.rehber;
+    s.style.margin = '0';
+    s.onchange = async () => { try { await cagir('rehberKaydet', x.sinif, s.value); bildir(x.sinif + ' rehberi kaydedildi.'); } catch (e) { bildir(e.message, true); } };
+    return [x.sinif, s];
+  });
+  YC.append(kart('Sınıf rehber öğretmenleri', tablo(['Sınıf', 'Rehber öğretmen'], satirlar)),
+    el('div', { className: 'ipucu', textContent: 'Sınıf rehber öğretmeni, sınıfının tüm derslerindeki kayıtları "Sınıf Raporu" ve "Dikkat Listesi" sekmelerinde görür. Tüm okulu görecek okul rehber öğretmeni için Kullanıcılar bölümünde "Rehber öğretmen" rolü kullanın. Atamadan sonra öğretmen uygulamayı yeniden açmalıdır.' }));
+}
+
+async function tabloAc(ad) {
+  const t = await cagir('tabloOku', ad);
+  YC.innerHTML = '';
+  if (ad === AYR) return ayarFormu(t);
+
+  const satirlar = t.rows.map(r => {
+    const v = r.v.map((x, i) => {
+      if (ad === BIL && i === 9 && String(x).startsWith('http')) return el('a', { href: x, target: '_blank', rel: 'noopener', textContent: 'WhatsApp’ta aç' });
+      const gosterim = typeof x === 'boolean' ? (x ? 'Evet' : 'Hayır') : x;
+      if (DUZ.includes(ad) && t.h[i] !== 'Ekleyen') {
+        return el('span', { className: 'edit', title: 'Değiştirmek için dokunun', textContent: String(gosterim) === '' ? '·' : String(gosterim), onclick: async () => {
+          let y;
+          if (t.h[i] === 'Aktif') y = String(!(x === true));
+          else { y = prompt(`${t.h[i]} (satır ${r.no}):`, String(x)); if (y === null) return; }
+          try { await cagir('tabloGuncelle', ad, r.no, i, y); yonetimAc(ad); } catch (e) { bildir(e.message, true); }
+        } });
+      }
+      return gosterim;
+    });
+    const islem = el('span');
+    if (ad === BIL) {
+      const kanal = r.v[6], durum = r.v[7], yapildi = r.v[11] === true;
+      if (durum === 'Onay bekliyor' && (kanal === 'E-posta' || kanal === 'WhatsApp API')) {
+        islem.append(el('button', {
+          className: 'b', textContent: 'Gönder',
+          onclick: async () => { try { bildir(await cagir('bildirimGonder', r.no)); yonetimAc(ad); } catch (e) { bildir(e.message, true); } }
+        }));
+      }
+      islem.append(el('button', {
+        className: 'b ikincil', textContent: yapildi ? 'Yapıldı ✓' : 'Yapıldı işaretle',
+        onclick: async () => { try { await cagir('bildirimYapildi', r.no, !yapildi); yonetimAc(ad); } catch (e) { bildir(e.message, true); } }
+      }));
+    }
+    if (DUZ.includes(ad) || ad === BIL) {
+      islem.append(el('button', {
+        className: 'b sil', textContent: 'Sil',
+        onclick: async () => {
+          if (!confirm('Bu satır silinsin mi?')) return;
+          try { await cagir('tabloSil', ad, r.no); yonetimAc(ad); } catch (e) { bildir(e.message, true); }
+        }
+      }));
+    }
+    return [...v, islem];
+  });
+
+  const icerik = [];
+  if (DUZ.includes(ad)) icerik.push(el('div', { className: 'ipucu', textContent: 'Bir hücreyi değiştirmek için üzerine dokunun.' }));
+  if (ad === BIL) icerik.push(el('div', { className: 'ipucu', textContent: 'WhatsApp Bağlantısı kanalında "WhatsApp’ta aç" bağlantısına tıklayın, mesaj hazır gelir. Gönderdikten sonra "Yapıldı işaretle" düğmesine basın. E-posta ve WhatsApp API kanallarında "Gönder" düğmesi kullanılır.' }));
+  if (ad === 'Performanslar') icerik.push(el('div', { className: 'ipucu', textContent: 'Her satır bir ders içi katılım puanıdır (MEB: haftalık 2 saat ve altı derslerde dönemde 2, daha fazlasında 3 puan; 2 saatlik derslerde 3. satırı Pasif yapın). Başlangıç/Bitiş tarihi boşsa tüm kayıtlar, doluysa yalnızca o dönemin kayıtları sayılır. Düzeyler "en az yüzde:düzey adı" biçimindedir (puanın maksimuma oranı). Kriterleri Ölçek Kriterleri sayfasından düzenleyin.' }));
+  if (ad === 'Ölçek Kriterleri') icerik.push(el('div', { className: 'ipucu', textContent: 'Performans sütununa * yazarsanız kriter tüm performanslar için geçerlidir; belirli bir performansın adını yazarsanız yalnızca ona uygulanır (bir performansa özel satır varsa yalnızca onlar kullanılır). Puan = Maks × Başlangıç%/100 + Birim puan × (kayıt puanları toplamı), 0 ile Maks arasında. Kayıtlar boşsa kapsamdaki tüm kayıtlar sayılır, doluysa davranış/ödev adlarını ; ile ayırarak yazın. Kapsam: Davranış, Ödev veya Tümü. Toplam maks puanı 100 yapmanız önerilir.' }));
+  icerik.push(tablo([...t.h, 'İşlem'], satirlar));
+
+  if (DUZ.includes(ad)) {
+    const girisler = t.h.map(b => {
+      if (b === 'Ekleyen') return { value: '' };
+      if (b === 'Aktif') return sel([['true', 'Aktif'], ['false', 'Pasif']], null);
+      if (b === 'Kategori') return sel([['Olumlu', 'Olumlu'], ['Olumsuz', 'Olumsuz']], null);
+      if (b === 'Kapsam') return sel([['Davranış', 'Davranış'], ['Ödev', 'Ödev'], ['Tümü', 'Tümü']], null);
+      if (b.includes('Tarihi')) return el('input', { type: 'date', title: b });
+      return el('input', { placeholder: b });
+    });
+    icerik.push(el('label', { textContent: 'Yeni satır' }),
+      el('div', { className: 'form' }, girisler.filter(g => g instanceof Node)),
+      el('button', {
+        className: 'b', textContent: 'Satır ekle',
+        onclick: async () => { try { await cagir('tabloEkle', ad, girisler.map(g => g.value)); yonetimAc(ad); } catch (e) { bildir(e.message, true); } }
+      }));
+  }
+  YC.append(kart(`${ad} (${t.rows.length} satır)`, el('div', {}, icerik)));
+}
+
+const AYAR_SECENEK = {
+  BILDIRIM_KANAL: ['WhatsApp Bağlantısı', 'WhatsApp API', 'E-posta', 'Kapalı'],
+  ALICI: ['Anne ve Baba', 'Anne', 'Baba'],
+  OTOMATIK_GONDER: ['Açık', 'Kapalı'],
+  HAFTALIK_RAPOR: ['Açık', 'Kapalı']
+};
+
+function ayarFormu(t) {
+  const alan = el('div');
+  t.rows.forEach(r => {
+    const anahtar = r.v[0];
+    const girdi = AYAR_SECENEK[anahtar] ? sel(AYAR_SECENEK[anahtar], null) : el('input');
+    girdi.value = String(r.v[1]);
+    alan.append(el('div', { className: 'satir' }, [
+      el('div', {}, [el('b', { textContent: anahtar }), el('div', { className: 'ipucu', textContent: r.v[2] })]),
+      girdi,
+      el('button', {
+        className: 'b', textContent: 'Kaydet',
+        onclick: async () => { try { await cagir('ayarKaydet', anahtar, girdi.value); bildir('Kaydedildi: ' + anahtar); } catch (e) { bildir(e.message, true); } }
+      })
+    ]));
+  });
+  alan.append(el('button', {
+    className: 'b ikincil', textContent: 'Haftalık raporu şimdi hazırla',
+    onclick: async () => { try { const n = await cagir('haftalikRaporCalistir'); bildir(n + ' öğrenci için rapor hazırlandı.'); } catch (e) { bildir(e.message, true); } }
+  }));
+  YC.append(kart('Ayarlar', alan));
+}
+</script>
+</body>
+</html>
