@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#14407a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -112,6 +112,12 @@
   #bildirim { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #202124; color: #fff; padding: 10px 16px; border-radius: 10px; display: none; max-width: 90%; z-index: 60; }
   #bildirim.goster { display: block; }
 
+  .cz { cursor: pointer; font-size: 11px; line-height: 1.25; padding: 6px 5px !important; min-width: 92px; max-width: 130px; word-break: break-word; }
+  .cz:hover { outline: 2px solid #bcd3f2; outline-offset: -2px; }
+  .cz.pos { background: #e3f4e8; color: #14532d; } .cz.neg { background: #fde7e5; color: #991b1b; } .cz.bos { color: #98a2b3; }
+  .mat thead th .konu { font-weight: 400; font-size: 10.5px; margin-top: 2px; word-break: break-word; }
+  .mat tr.alt-satir td { background: #f4f6fa; font-weight: 600; cursor: default; }
+  .imza > div { text-align: center; min-width: 170px; font-weight: 600; }
   @media (min-width: 900px) {
     main { max-width: 1280px; padding: 18px; }
     .mat { max-height: 72vh; }
@@ -124,6 +130,8 @@
     body { background: #fff; }
     .kart { box-shadow: none; border: 0; padding: 0; }
     table { display: table; overflow: visible; }
+    .mat { max-height: none !important; overflow: visible !important; border: 0; }
+    .mat thead th, .mat .ad { position: static !important; }
   }
 </style>
 </head>
@@ -141,7 +149,7 @@
 const LOGO = '<svg viewBox="0 0 64 64" width="%S%" height="%S%" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="31" fill="#fff"/><path d="M32 7 L53 15 V32 C53 45 44 54 32 58 C20 54 11 45 11 32 V15 Z" fill="#14407a"/><path d="M19 30 Q25.500 26 32 30.500 Q38.500 26 45 30 V43 Q38.500 39 32 43.500 Q25.500 39 19 43 Z" fill="#fff"/><path d="M32 30.500 V43.500" stroke="#14407a" stroke-width="1.600"/><path d="M32 13 l2.200 4.500 l4.900 .7 l-3.550 3.450 l.85 4.850 L32 24.100 l-4.400 2.400 l.85 -4.850 L24.900 18.200 l4.900 -.7 Z" fill="#f9c846"/></svg>';
 
 const BIL = 'Bildirimler', AYR = 'Ayarlar', KAYITLAR = 'Kayıtlar';
-let TOKEN = null, ANA = null, YC = null;
+let TOKEN = null, ANA = null, YC = null, ONSEC = null;
 try { TOKEN = sessionStorage.getItem('tk'); } catch (e) {}
 
 const $ = id => document.getElementById(id);
@@ -201,6 +209,28 @@ const lb = t => el('label', { textContent: t });
 const ozetYaz = s => s.map(x => x.ogr + ' → ' + x.sonuc).join(' · ');
 const yazdirBtn = () => el('button', { className: 'b ikincil gizle', textContent: '🖨 Yazdır / PDF', onclick: () => window.print() });
 
+// Evrak başlığı ve imza alanı: okul, müdür yardımcısı ve müdür adları Yönetim → Ayarlar'dan gelir
+function evrakUst(baslik, satirlar, okul) {
+  const o = okul || ANA.okul || {};
+  return el('div', { className: 'olcek-bas' }, [
+    el('b', { textContent: `${o.ad || ''} · ${baslik}` }),
+    ...[o.yil, ...(satirlar || []), 'Düzenlenme tarihi: ' + trTarih(bugunStr())].filter(Boolean).map(x => el('div', { textContent: x }))
+  ]);
+}
+
+function imzaBlok(sol, okul) {
+  const o = okul || ANA.okul || {};
+  const liste = [...(sol || []), { ad: o.mudurYrd, unvan: 'Müdür Yardımcısı' }, { ad: o.mudur, unvan: 'Okul Müdürü' }];
+  return el('div', { className: 'imza' }, liste.map(x => el('div', {}, [
+    el('div', { textContent: x.ad || '……………………' }),
+    el('div', { className: 'ipucu', textContent: x.unvan })
+  ])));
+}
+
+function evrakKart(baslik, satirlar, icerik, imzaSol) {
+  return el('div', { className: 'kart' }, [evrakUst(baslik, satirlar), icerik, imzaBlok(imzaSol || [{ ad: ANA.user.ad, unvan: 'Raporu hazırlayan' }])]);
+}
+
 /* ---------- TARİH YARDIMCILARI ---------- */
 
 const pad = n => String(n).padStart(2, '0');
@@ -231,7 +261,7 @@ function tarihSecici(onDegis) {
     yaz
   ]);
   ayarla(t, false);
-  return { kutu: kutu, al: () => t };
+  return { kutu: kutu, al: () => t, ayarla: ayarla };
 }
 
 function modal(baslik, govde) {
@@ -325,7 +355,7 @@ function cikisYap(sessiz) {
 }
 
 function menuKur() {
-  const s = [['giris', 'Davranış'], ['odev', 'Ödev'], ['perf', 'Performans'], ['rapor', 'Öğrenci Raporu']];
+  const s = [['giris', 'Davranış'], ['odev', 'Ödev'], ['cizelge', 'Takip Çizelgesi'], ['perf', 'Performans'], ['rapor', 'Öğrenci Raporu']];
   if (ANA.rehber.length) s.push(['sinifrapor', 'Sınıf Raporu'], ['dikkat', 'Dikkat Listesi'], ['gelisim', 'Gelişim Raporu']);
   s.push(['sifre', 'Şifrem']);
   if (ANA.user.admin) s.push(['yonetim', 'Yönetim']);
@@ -334,11 +364,12 @@ function menuKur() {
   s.forEach(([k, l]) => n.append(el('button', { id: 's_' + k, textContent: l, onclick: () => sekme(k) })));
 }
 
-function sekme(k) {
+function sekme(k, param) {
+  ONSEC = param || null;
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('a', b.id === 's_' + k));
   const m = $('icerik');
   m.innerHTML = '';
-  ({ giris: gorDavranis, odev: gorOdev, perf: gorPerf, rapor: gorRapor, sinifrapor: gorSinifRapor, dikkat: gorDikkat, gelisim: gorGelisim, sifre: gorSifre, yonetim: gorYonetim })[k](m);
+  ({ giris: gorDavranis, odev: gorOdev, cizelge: gorCizelge, perf: gorPerf, rapor: gorRapor, sinifrapor: gorSinifRapor, dikkat: gorDikkat, gelisim: gorGelisim, sifre: gorSifre, yonetim: gorYonetim })[k](m);
 }
 
 /* ---------- ORTAK: SINIF/DERS SEÇİCİ VE ÖĞRENCİ x SÜTUN TABLOSU ---------- */
@@ -630,6 +661,13 @@ function gorDavranis(c) {
     catch (e) { bildir(e.message, true); }
   } });
 
+  if (ONSEC && ONSEC.tarih && ONSEC.konu === undefined) {
+    const p = ONSEC; ONSEC = null;
+    ts.ayarla(p.tarih, false);
+    sd.sSinif.value = p.sinif; sd.sSinif.onchange();
+    sd.sDers.value = p.ders; yukle();
+  }
+
   sd.kutu.append(lb('Gün'), ts.kutu);
   c.append(
     sd.kutu,
@@ -756,6 +794,13 @@ function gorOdev(c) {
     }
   });
 
+  if (ONSEC && ONSEC.konu !== undefined) {
+    const p = ONSEC; ONSEC = null;
+    sd.sSinif.value = p.sinif; sd.sSinif.onchange();
+    sd.sDers.value = p.ders; listeYukle(); yeni();
+    ac({ konu: p.konu, tarih: p.tarih });
+  }
+
   c.append(
     sd.kutu, liste,
     el('div', { className: 'kart' }, [baslik, lb('Tarih'), tarih, lb('Konu'), konu]),
@@ -766,19 +811,138 @@ function gorOdev(c) {
   );
 }
 
+/* ---------- TAKİP ÇİZELGESİ (TARİHE GÖRE TABLO) ---------- */
+
+// Ödev veya davranış verilen günler sütun, tüm öğrenciler satır. Bir tarihe/hücreye dokunmak o günün ekranını açar.
+function gorCizelge(c) {
+  let TUR = 'odev';
+  const cikti = el('div');
+  const ay = el('input', { type: 'month' });
+  const sd = sinifDers(() => { cikti.innerHTML = ''; });
+  const S = () => sd.sSinif.value, D = () => sd.sDers.value;
+  const bOdev = el('button', { className: 'seg a', textContent: 'Ödev', onclick: () => tur('odev') });
+  const bDav = el('button', { className: 'seg', textContent: 'Davranış', onclick: () => tur('dav') });
+
+  function tur(t) {
+    TUR = t;
+    bOdev.classList.toggle('a', t === 'odev');
+    bDav.classList.toggle('a', t === 'dav');
+    cikti.innerHTML = '';
+  }
+
+  function aralik() {
+    if (!ay.value) return ['', ''];
+    const [y, m] = ay.value.split('-').map(Number);
+    return [ay.value + '-01', tStr(new Date(y, m, 0))];
+  }
+
+  async function goster() {
+    if (!S() || !D()) return bildir('Sınıf ve dersi seçin.', true);
+    const [b, e] = aralik();
+    cikti.textContent = 'Yükleniyor...';
+    try {
+      if (TUR === 'odev') odevTablosu(await cagir('odevCizelgesi', S(), D(), b, e));
+      else davTablosu(await cagir('davranisCizelgesi', S(), D(), b, e));
+    } catch (er) { cikti.textContent = er.message; }
+  }
+
+  const odevAc = o => sekme('odev', { sinif: S(), ders: D(), konu: o.konu, tarih: o.tarih });
+  const gunAc = g => sekme('giris', { sinif: S(), ders: D(), tarih: g });
+  const hucreSinif = p => 'h cz ' + (p > 0 ? 'pos' : p < 0 ? 'neg' : '');
+
+  function tabloYap(baslikHucreleri, ekBasliklar) {
+    const kap = el('div', { className: 'mat' }), t = el('table'), hr = t.createTHead().insertRow();
+    hr.append(el('th', { className: 'ad', textContent: 'Öğrenci', style: 'cursor:default' }));
+    baslikHucreleri.forEach(h => hr.append(h));
+    ekBasliklar.forEach(b => hr.append(el('th', { textContent: b, style: 'cursor:default' })));
+    kap.append(t);
+    return { kap, govde: t.createTBody() };
+  }
+
+  function sarmala(baslik, satirlar, kap, ipucu) {
+    cikti.innerHTML = '';
+    cikti.append(
+      el('div', { className: 'kart' }, [evrakUst(baslik, [`Sınıf: ${S()} · Ders: ${D()}${ay.value ? ' · ' + ay.value.split('-').reverse().join('.') : ''}`, ...satirlar]), kap, imzaBlok([{ ad: ANA.user.ad, unvan: 'Ders Öğretmeni' }])]),
+      el('div', { className: 'ipucu gizle', textContent: ipucu }),
+      yazdirBtn()
+    );
+  }
+
+  function odevTablosu(r) {
+    if (!r.odevler.length) { cikti.innerHTML = ''; cikti.append(el('div', { className: 'kart', textContent: 'Seçilen aralıkta ödev kontrolü yok.' })); return; }
+    const basliklar = r.odevler.map(o => el('th', { title: 'Bu ödev kontrolünü düzeltmek için dokunun', onclick: () => odevAc(o) },
+      [trTarih(o.tarih), el('div', { className: 'konu', textContent: o.konu })]));
+    const { kap, govde } = tabloYap(basliklar, ['Sorunlu', 'Puan']);
+    r.satirlar.forEach(s => {
+      const tr = govde.insertRow();
+      const ad = tr.insertCell(); ad.className = 'ad'; ad.textContent = (s.no ? s.no + ' · ' : '') + s.ad;
+      s.h.forEach((x, i) => {
+        const td = tr.insertCell();
+        td.className = x ? hucreSinif(x.p) : 'h cz bos';
+        td.textContent = x ? x.d : '·';
+        td.title = 'Düzeltmek için dokunun';
+        td.onclick = () => odevAc(r.odevler[i]);
+      });
+      const e1 = tr.insertCell(); e1.className = 'ek ' + (s.eksik ? 'neg' : ''); e1.textContent = s.eksik;
+      const e2 = tr.insertCell(); e2.className = 'ek ' + (s.puan > 0 ? 'pos' : s.puan < 0 ? 'neg' : ''); e2.textContent = s.puan;
+    });
+    const alt = govde.insertRow(); alt.className = 'alt-satir';
+    const a0 = alt.insertCell(); a0.className = 'ad'; a0.textContent = 'Sorunlu öğrenci sayısı';
+    r.odevler.forEach((o, i) => { const td = alt.insertCell(); td.className = 'h'; td.textContent = r.satirlar.filter(s => s.h[i] && s.h[i].p < 0).length; });
+    alt.insertCell(); alt.insertCell();
+    sarmala('Ödev Takip Çizelgesi', [`${r.odevler.length} ödev kontrolü`], kap, 'Bir tarih başlığına veya hücreye dokunursanız o ödev kontrolü açılır; oradan öğrencilerin durumunu (ör. sonradan getirenleri) düzeltebilirsiniz.');
+  }
+
+  function davTablosu(r) {
+    if (!r.gunler.length) { cikti.innerHTML = ''; cikti.append(el('div', { className: 'kart', textContent: 'Seçilen aralıkta davranış kaydı yok.' })); return; }
+    const basliklar = r.gunler.map(g => el('th', { title: 'O günün davranış tablosunu açmak için dokunun', onclick: () => gunAc(g) },
+      [trTarih(g), el('div', { className: 'konu', textContent: gunAdi(g) })]));
+    const { kap, govde } = tabloYap(basliklar, ['Olumlu', 'Olumsuz', 'Net']);
+    r.satirlar.forEach(s => {
+      const tr = govde.insertRow();
+      const ad = tr.insertCell(); ad.className = 'ad'; ad.textContent = (s.no ? s.no + ' · ' : '') + s.ad;
+      s.h.forEach((x, i) => {
+        const td = tr.insertCell();
+        td.className = x ? hucreSinif(x.net) : 'h cz bos';
+        td.textContent = x ? [x.o ? '+' + x.o : '', x.n ? '−' + x.n : '', x.not ? '📝' + x.not : ''].filter(Boolean).join(' ') : '·';
+        td.title = x ? `Net ${x.net > 0 ? '+' : ''}${x.net} · düzeltmek için dokunun` : 'Kayıt yok · bu günü açmak için dokunun';
+        td.onclick = () => gunAc(r.gunler[i]);
+      });
+      const e1 = tr.insertCell(); e1.className = 'ek pos'; e1.textContent = s.o;
+      const e2 = tr.insertCell(); e2.className = 'ek neg'; e2.textContent = s.n;
+      const e3 = tr.insertCell(); e3.className = 'ek ' + (s.net > 0 ? 'pos' : s.net < 0 ? 'neg' : ''); e3.textContent = s.net;
+    });
+    const alt = govde.insertRow(); alt.className = 'alt-satir';
+    const a0 = alt.insertCell(); a0.className = 'ad'; a0.textContent = 'Günlük toplam';
+    r.gunler.forEach((g, i) => {
+      const td = alt.insertCell(); td.className = 'h';
+      const o = r.satirlar.reduce((a, s) => a + (s.h[i] ? s.h[i].o : 0), 0), n = r.satirlar.reduce((a, s) => a + (s.h[i] ? s.h[i].n : 0), 0);
+      td.textContent = `+${o} −${n}`;
+    });
+    alt.insertCell(); alt.insertCell(); alt.insertCell();
+    sarmala('Davranış Takip Çizelgesi', [`${r.gunler.length} gün`], kap, 'Hücrelerde o gün verilen olumlu (+) ve olumsuz (−) davranış sayıları ile notlar (📝) görünür. Bir tarihe veya hücreye dokunursanız o günün davranış tablosu açılır; oradan düzeltebilirsiniz.');
+  }
+
+  sd.kutu.append(
+    lb('Çizelge türü'), el('div', { style: 'margin-bottom:8px' }, [bOdev, bDav]),
+    lb('Ay (boş bırakırsanız tüm tarihler)'), ay,
+    el('button', { className: 'b', textContent: 'Çizelgeyi getir', onclick: goster }),
+    el('button', { className: 'b ikincil', textContent: 'Tüm tarihler', onclick: () => { ay.value = ''; goster(); } })
+  );
+  c.append(sd.kutu, cikti);
+}
+
 /* ---------- PERFORMANS ---------- */
 
 function olcekCiz(c, d) {
   c.innerHTML = '';
-  const bas = el('div', { className: 'olcek-bas' }, [
-    el('b', { textContent: `${d.okul} · Ders ve Etkinliklere Katılım Değerlendirme Ölçeği` }),
-    el('div', { textContent: `${d.yil} · ${d.performans}${d.donem ? ' · ' + d.donem : ''}` }),
-    el('div', { textContent: `Sınıf: ${d.sinif} · Ders: ${d.ders} · Ders öğretmeni: ${d.ogretmen}` })
-  ]);
+  const okul = { ad: d.okul, yil: d.yil, mudur: d.mudur, mudurYrd: d.mudurYrd };
   const basliklar = ['No', 'Ad Soyad', ...d.kriterler.map(k => `${k.ad} (${k.maks})`), `Toplam (${d.toplamMaks})`, 'Düzey'];
-  c.append(el('div', { className: 'kart' }, [bas, tablo(basliklar, d.satirlar),
-    el('div', { className: 'imza' }, [el('div', { textContent: 'Ders Öğretmeni' }), el('div', { textContent: 'Okul Müdürü' })])]),
-    el('div', { className: 'ipucu gizle', textContent: 'Hiç kaydı olmayan öğrencilerin puanı, kriterlerin başlangıç değerinden hesaplanır. Ölçeği yazdırıp iki nüsha olarak düzenleyebilirsiniz.' }),
+  c.append(el('div', { className: 'kart' }, [
+    evrakUst('Ders ve Etkinliklere Katılım Değerlendirme Ölçeği', [`${d.performans}${d.donem ? ' · ' + d.donem : ''}`, `Sınıf: ${d.sinif} · Ders: ${d.ders}`], okul),
+    tablo(basliklar, d.satirlar),
+    imzaBlok([{ ad: d.ogretmen, unvan: 'Ders Öğretmeni' }], okul)]),
+    el('div', { className: 'ipucu gizle', textContent: 'Hiç kaydı olmayan öğrencilerin puanı, kriterlerin başlangıç değerinden hesaplanır. Müdür ve müdür yardımcısı adları Yönetim → Ayarlar bölümünden girilir. Ölçeği yazdırıp iki nüsha olarak düzenleyebilirsiniz.' }),
     yazdirBtn());
 }
 
@@ -795,7 +959,7 @@ function gorPerf(c) {
       cikti.innerHTML = '';
       const sat = r.satirlar.map(x => [x[0], el('a', { href: '#', textContent: x[1], onclick: e => { e.preventDefault(); perfDuzenle(x[1]); } }), ...x.slice(2)]);
       cikti.append(
-        kart(`${S()} · ${D()} · ders içi katılım puanları`, tablo(r.basliklar, sat)),
+        evrakKart(`${S()} · ${D()} · ders içi katılım puanları`, [`Sınıf: ${S()} · Ders: ${D()}`], tablo(r.basliklar, sat), [{ ad: ANA.user.ad, unvan: 'Ders Öğretmeni' }]),
         el('div', { className: 'ipucu', textContent: '✎ işareti, öğretmenin elle düzelttiği puanı gösterir. Öğrenci adına dokunarak kriter puanlarına müdahale edebilirsiniz.' })
       );
       if (!r.ozet.length) { cikti.append(el('div', { className: 'kart', textContent: 'Etkin performans tanımı yok. Yönetim → Performanslar bölümünden ekleyin.' })); return; }
@@ -879,6 +1043,7 @@ function ogrRaporCiz(c, ad, r) {
   const kd = [];
   r.perf.forEach(x => x.detay.forEach(d => kd.push([x.ders, x.ad, d.kriter, `${d.puan} / ${d.maks}${d.elle ? ' ✎' : ''}`, d.n])));
   c.append(
+    el('div', { className: 'kart' }, [evrakUst('Öğrenci Davranış ve Performans Raporu', [`Öğrenci: ${ad} · Sınıf: ${r.sinif}`, `Hazırlayan: ${ANA.user.ad}`])]),
     kart(`${ad} · ${r.sinif}`, tablo(['Toplam puan', 'Genel ortalama (derslerin)'], [[r.toplam, r.ortalama]])),
     kart('Ders özeti (tüm öğretmenler)', tablo(['Ders', 'Puan', 'Olumlu kayıt', 'Olumsuz kayıt'], r.dersOzet.map(x => [x.ders, x.toplam, x.olumlu, x.olumsuz]))),
     kart('Ders içi performans · başarı grafiği (100 üzerinden)', r.perf.length
@@ -889,6 +1054,7 @@ function ogrRaporCiz(c, ad, r) {
     kart('Davranış ve ödev sayımı', tablo(['Tür', 'Kayıt', 'Adet', 'Puan'], r.sayim)),
     kart('Zaman çizelgesi (hangi derste, ne zaman, ne yaptı)', tablo(['Tarih', 'Ders', 'Öğretmen', 'Tür', 'Konu', 'Kayıt', 'Puan', 'Yorum'], r.kayitlar)),
     kart('Veli ve tutanak bildirimleri', tablo(['Tarih', 'Ders', 'Seviye', 'Alıcı', 'Durum', 'Yapıldı'], r.bildirimler)),
+    el('div', { className: 'kart' }, [imzaBlok([{ ad: ANA.user.ad, unvan: 'Raporu hazırlayan' }])]),
     yazdirBtn()
   );
 }
@@ -947,7 +1113,7 @@ function gorSinifRapor(c) {
       sat.push(['', el('b', { textContent: 'Sınıf ortalaması' }), ...r.ort, '', '', '', '', '']);
       cikti.innerHTML = '';
       cikti.append(
-        kart(`${s.value} · tüm derslerin toplu raporu`, tablo(['No', 'Öğrenci', ...r.dersler, 'Ortalama', 'Toplam', 'Olumlu', 'Olumsuz', 'Ödev sorunu'], sat)),
+        evrakKart(`${s.value} · tüm derslerin toplu raporu`, [`Sınıf: ${s.value}`], tablo(['No', 'Öğrenci', ...r.dersler, 'Ortalama', 'Toplam', 'Olumlu', 'Olumsuz', 'Ödev sorunu'], sat)),
         el('div', { className: 'ipucu', textContent: 'Ders sütunları, o dersin öğretmenlerinin girdiği toplam puandır. Ortalama dersler arası aritmetik ortalamadır. Ayrıntı için öğrenci adına dokunun.' }),
         yazdirBtn()
       );
@@ -970,7 +1136,7 @@ function gorDikkat(c) {
       const sat = r.map(x => [x[0], x[1], ogrBaglanti(x[2], x[0], detay, t), el('span', { className: 'chip ' + x[3], textContent: x[3] }), ...x.slice(4)]);
       cikti.innerHTML = '';
       cikti.append(
-        kart(`Dikkat listesi (${r.length} öğrenci)`, r.length
+        evrakKart(`Dikkat listesi (${r.length} öğrenci)`, [s.value ? `Sınıf: ${s.value}` : 'Tüm sınıflar'], r.length
           ? tablo(['Sınıf', 'No', 'Öğrenci', 'Risk', 'En sorunlu ders (puan)', 'Olumsuz kayıt', 'Sorunlu ders sayısı', 'Ödev sorunu', 'Son 14 gün olumsuz', 'Açık bildirim'], sat)
           : el('div', { textContent: 'Seçilen kapsamda dikkat gerektiren öğrenci bulunmuyor.' })),
         el('div', { className: 'ipucu', textContent: 'Yüksek: en düşük ders puanı tutanak eşiğinde veya açık tutanak var. Orta: veli bilgilendirme eşiğinde, 3 veya daha fazla derste negatif ya da son 14 günde 6+ olumsuz kayıt. İzlenecek: toplam negatif ve en az 3 olumsuz kayıt. Öğrenci adına dokunarak tüm derslerdeki kayıtlarını görebilirsiniz.' }),
@@ -1002,7 +1168,7 @@ function gorGelisim(c) {
         r.duzenleyebilir ? el('button', { className: 'b ikincil', textContent: 'Düzenle', onclick: () => duzenle(r, x) }) : '']);
       cikti.innerHTML = '';
       cikti.append(
-        kart(`${s.value} · ${don.value} gelişim raporu`, tablo(['No', 'Öğrenci', 'Özürlü devamsız (gün)', 'Özürsüz devamsız (gün)', ...r.beceriler, 'Öğretmen görüşü', 'Olumlu kayıt', 'Olumsuz kayıt', 'Ödev sorunu', ''], sat)),
+        evrakKart(`${s.value} · ${don.value} gelişim raporu`, [`Sınıf: ${s.value} · ${don.value}`], tablo(['No', 'Öğrenci', 'Özürlü devamsız (gün)', 'Özürsüz devamsız (gün)', ...r.beceriler, 'Öğretmen görüşü', 'Olumlu kayıt', 'Olumsuz kayıt', 'Ödev sorunu', ''], sat), [{ ad: r.rehberAd, unvan: 'Sınıf Rehber Öğretmeni' }]),
         el('div', { className: 'ipucu', textContent: (r.duzenleyebilir ? 'Düzenle düğmesiyle devamsızlık, beceri düzeyleri ve görüşü girin. ' : 'Raporu yalnızca sınıf rehber öğretmeni düzenler; siz görüntüleyebilirsiniz. ') + 'Olumlu/olumsuz kayıt ve ödev sayıları, seçtiğiniz tarih aralığındaki kayıtlardan otomatik gelir. Bu, genel bir şablondur; resmî form farklıysa beceri listesi Kod.gs içindeki GELISIM_BECERILER ile değiştirilir.' }),
         yazdirBtn()
       );
@@ -1088,6 +1254,14 @@ async function ekKullanicilar() {
   const rolAd = { Admin: 'Yönetici', Rehber: 'Rehber öğretmen', Öğretmen: 'Öğretmen' };
   const satirlar = d.map(u => [u.kad, u.ad, rolAd[u.rol] || u.rol, u.aktif ? 'Aktif' : 'Pasif', u.sonGiris, u.atama,
     el('span', {}, [
+      el('button', {
+        className: 'b ikincil', textContent: 'Adı değiştir',
+        onclick: async () => {
+          const y = prompt('Ad soyad (evraklarda bu ad görünür):', u.ad);
+          if (!y) return;
+          try { await cagir('kullaniciAdGuncelle', u.kad, y); bildir('Ad güncellendi.'); yonetimAc('Kullanıcılar'); } catch (e) { bildir(e.message, true); }
+        }
+      }),
       el('button', {
         className: 'b ikincil', textContent: 'Şifre sıfırla',
         onclick: async () => {
