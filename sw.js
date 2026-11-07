@@ -1,7 +1,7 @@
 /* Gazi Ortaokulu Davranış Takip · service worker
    Yalnızca uygulama dosyalarını (aynı kaynaktaki GET istekleri) önbelleğe alır.
    Apps Script API istekleri (POST, başka alan adı) hiçbir zaman önbelleğe alınmaz. */
-const SURUM = 'davranis-takip-v1';
+const SURUM = 'davranis-takip-v2';
 const DOSYALAR = [
   './', 'index.html', 'config.js', 'pwa.js', 'manifest.webmanifest',
   'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'
