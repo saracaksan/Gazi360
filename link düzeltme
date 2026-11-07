@@ -1,0 +1,11 @@
+index.html dosyasında <meta name="viewport" ...> satırının hemen altına şu satırları ekleyin:
+html
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14407a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Davranış Takip">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<script src="config.js"></script>
+<script src="pwa.js"></script>
